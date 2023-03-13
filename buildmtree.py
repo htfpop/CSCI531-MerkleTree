@@ -15,6 +15,9 @@ def print_hi(name):
     print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
 
     args = sys.argv
+    if len(args) < 2:
+        print(f'[ERROR]: No arguments provided. Exiting now')
+        exit(-1)
     print(f'Arguments {args}\r\n')
     arg_parser(args)
 
@@ -22,6 +25,7 @@ def print_hi(name):
     t.create_node("Harry", "harry")
     t.create_node("Jane", "jane", parent="harry")
     t.create_node("Bill", "bill", parent="harry")
+    t.create_node("temo", "temo", parent="bill")
     t.create_node("Diane", "diane", parent="jane")
     t.create_node("Mary", "mary", parent="diane")
     t.create_node("Mark", "mark", parent="jane")
@@ -63,6 +67,8 @@ def arg_parser(args):
     parsed_args = temp_str.split(sep=',')
 
     print(f'Args = {parsed_args}')
+
+    return parsed_args
 
 
 # Press the green button in the gutter to run the script.
