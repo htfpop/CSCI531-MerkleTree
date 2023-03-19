@@ -1,13 +1,18 @@
-import hashlib
 from treelib import Node, Tree
-import os
+import hashlib
+import math
 import sys
 
 
-# This is a sample Python script.
+class treeNode:
+    def __init__(self, data, left_node=None, right_node=None):
+        self.data = data
+        self.hash = hashlib.sha256(data.encode()).hexdigest()
+        self.left_node = left_node
+        self.right_node = right_node
 
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
+    def __str__(self):
+        return f"Data: ({self.data}) Hash: ({hashlib.sha256(self.data.encode()).hexdigest()})"
 
 
 def print_hi(name):
@@ -19,18 +24,51 @@ def print_hi(name):
         print(f'[ERROR]: No arguments provided. Exiting now')
         exit(-1)
     print(f'Arguments {args}\r\n')
-    arg_parser(args)
+    arguments = arg_parser(args)
 
+    merkle_tree = gen_tree(arguments)
+
+    merkle_tree.show()
+
+
+def gen_tree(args):
     t = Tree()
-    t.create_node("Harry", "harry")
-    t.create_node("Jane", "jane", parent="harry")
-    t.create_node("Bill", "bill", parent="harry")
-    t.create_node("temo", "temo", parent="bill")
-    t.create_node("Diane", "diane", parent="jane")
-    t.create_node("Mary", "mary", parent="diane")
-    t.create_node("Mark", "mark", parent="jane")
+    level = math.log2(len(args))
+    num_nodes = 0
 
-    t.show()
+
+    if math.ceil(level) != math.floor(level):
+        num_nodes = math.pow(2, math.ceil(level))
+
+    remain = int(num_nodes - len(args))
+
+    t.create_node(tag="Root", identifier="Root", parent=None, data=None)
+
+    leaf = []
+
+    # copy all elements into leaf nodes
+    for elem in range(len(args)):
+        leaf.append(treeNode(args[elem]))
+
+    for i in range(remain):
+        leaf.append(treeNode(args[len(args) - 1]))
+
+    for i in range(len(leaf)):
+        print(leaf[i])
+
+    print(f'test')
+    #t.root = treeNode("test", leaf[int(len(args)/2)+2], leaf[int(len(args) / 2) + 1])
+
+    print(f'Total nodes = {len(leaf)}')
+
+    for i in range(len(leaf)-1, -1, -1):
+        right = leaf[i]
+        left = leaf[i-1]
+
+        parent = t.create_node(right.data, right.data, t.root, hashlib.sha256((right.hash+left.hash).encode()).hexdigest())
+        print(parent.data)
+
+    return t
 
 
 def arg_parser(args):
@@ -66,13 +104,14 @@ def arg_parser(args):
 
     parsed_args = temp_str.split(sep=',')
 
+    if len(parsed_args) % 2 != 0:
+        print(f'[WARN]: Input size is odd, appending last entry "{parsed_args[len(parsed_args) - 1]}" to make length even')
+        parsed_args.append(parsed_args[len(parsed_args) - 1])
+
     print(f'Args = {parsed_args}')
 
     return parsed_args
 
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
