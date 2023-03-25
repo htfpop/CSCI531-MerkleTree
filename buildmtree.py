@@ -28,6 +28,9 @@ def merkle_entry():
 
     merkle_tree.show()
 
+    x = merkle_tree.get_node("Root").data.hash
+    print(x)
+
 
 def get_remain_nodes(args):
     curr_level = math.log2(len(args))
@@ -70,18 +73,17 @@ def gen_tree(args):
 
     print(f'Total nodes = {len(leaves)}')
 
-    #    for i in range(len(leaf) - 1, -1, -1):
-    #        right = leaf[i]
-    #        left = leaf[i - 1]
-
-    #        parent = t.create_node(right.data, right.data, t.root,
-    #                               hashlib.sha256((right.hash + left.hash).encode()).hexdigest())
-    #        print(parent.data)
-
     num_levels = int(math.floor(math.log2(len(leaves))))
     previous_level = leaves
     next_level = []
     hash_ctr = 0
+
+    # Merkle Tree Bottom-Up Approach
+    # 1. utilize num_levels to iteratively go through each tree's level performing bottom-up construction
+    # 2. construct parent node by utilizing children indexed by left (2n) and right (2n+1) positions
+    # 3. update L/R children to point at newly created parent
+    # 4. store in local buffer (next_level) such that we have references to a previous level's nodes
+    # 5. when num_levels reach 1, this is the root node. Store H(L+R) nodes
     for curr_level in range(num_levels, 0, -1):
         for i in range(0, len(previous_level), 2):
             l_node = previous_level[i]
@@ -92,7 +94,7 @@ def gen_tree(args):
                 print(f'[DEBUG]: L: {l_node} R: {r_node}')
                 node_id = "h" + str(hash_ctr)
                 new_node.uid = node_id
-                t.create_node(tag=None, identifier=node_id, parent="Root",data=new_node)
+                t.create_node(tag=None, identifier=node_id, parent="Root", data=new_node)
                 t.move_node(l_node.uid, node_id)
                 t.move_node(r_node.uid, node_id)
                 next_level.append(new_node)
@@ -100,7 +102,6 @@ def gen_tree(args):
 
             else:
                 t.update_node("Root", data=new_node)
-                # t.root = Node(tag=None, identifier="Root", data=treeNode(l_node.hash + r_node.hash, l_node, r_node))
 
         previous_level = next_level.copy()
         next_level.clear()
