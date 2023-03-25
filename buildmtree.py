@@ -5,14 +5,15 @@ import sys
 
 
 class treeNode:
-    def __init__(self, data, left_node=None, right_node=None):
+    def __init__(self, data, left_node=None, right_node=None, uid=None):
         self.data = data
         self.hash = hashlib.sha256(data.encode()).hexdigest()
         self.left_node = left_node
         self.right_node = right_node
+        self.uid = uid
 
-    def __str__(self):
-        return f"Data: ({self.data}) Hash: ({hashlib.sha256(self.data.encode()).hexdigest()})"
+    #def __str__(self):
+    #    return f"Data: ({self.data}) Hash: ({hashlib.sha256(self.data.encode()).hexdigest()})"
 
 
 def merkle_entry():
@@ -57,6 +58,12 @@ def gen_tree(args):
     for i in range(remain):
         leaves.append(treeNode(args[-1]))
 
+    # add to tree
+    for i in range(len(leaves)):
+        uid = "d" + str(i)
+        t.create_node(tag=None, identifier=uid, parent="Root", data=leaves[i].hash)
+        leaves[i].uid = uid
+
     # DEBUG
     for i in range(len(leaves)):
         print(f'[DEBUG]: {leaves[i]}')
@@ -71,11 +78,32 @@ def gen_tree(args):
     #                               hashlib.sha256((right.hash + left.hash).encode()).hexdigest())
     #        print(parent.data)
 
-    for i in range(0, len(leaves), 2):
-        l_node = leaves[i]
-        r_node = leaves[i + 1]
+    num_levels = int(math.floor(math.log2(len(leaves))))
+    previous_level = leaves
+    next_level = []
+    hash_ctr = 0
+    for curr_level in range(num_levels, 0, -1):
+        for i in range(0, len(previous_level), 2):
+            l_node = previous_level[i]
+            r_node = previous_level[i + 1]
+            new_node = treeNode(l_node.hash + r_node.hash, l_node, r_node)
 
-        print(f'[DEBUG]: L: {l_node} R: {r_node}')
+            if curr_level != 1:
+                print(f'[DEBUG]: L: {l_node} R: {r_node}')
+                node_id = "h" + str(hash_ctr)
+                new_node.uid = node_id
+                t.create_node(tag=None, identifier=node_id, parent="Root",data=new_node)
+                t.move_node(l_node.uid, node_id)
+                t.move_node(r_node.uid, node_id)
+                next_level.append(new_node)
+                hash_ctr += 1
+
+            else:
+                t.update_node("Root", data=new_node)
+                # t.root = Node(tag=None, identifier="Root", data=treeNode(l_node.hash + r_node.hash, l_node, r_node))
+
+        previous_level = next_level.copy()
+        next_level.clear()
 
     return t
 
