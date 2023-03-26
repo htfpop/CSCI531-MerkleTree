@@ -12,18 +12,18 @@ class treeNode:
         self.right_node = right_node
         self.uid = uid
 
-        def __str__(self):
-            return self.uid
-            #return f"Data: ({self.data}) Hash: ({hashlib.sha256(self.data.encode()).hexdigest()})"
+        # def __str__(self):
+        # return self.uid
+        # return f"Data: ({self.data}) Hash: ({hashlib.sha256(self.data.encode()).hexdigest()})"
+
     def node_print(self):
         print(f'UID:{self.uid}\r\nData:{self.data}\r\nHash:{self.hash}')
 
     def node_to_str(self):
-        if self.left_node is None:
+        if self.left_node is None and self.right_node is None:
             return f'UID:{self.uid}\nData:{self.data}\nHash:{self.hash}\nL_Node:{self.left_node}\nR_Node:{self.right_node}\n\n'
         else:
             return f'UID:{self.uid}\nData:{self.data}\nHash:{self.hash}\nL_Node:{self.left_node.uid}\nR_Node:{self.right_node.uid}\n\n'
-
 
 
 def get_remain_nodes(args):
@@ -112,9 +112,9 @@ def gen_tree(args):
 
 
 def arg_parser(args):
-    parsed_args = []
-    l_bracket = -99
-    r_bracket = -99
+    # parsed_args = []
+    # l_bracket = -99
+    # r_bracket = -99
     temp_str = ""
 
     # iterate through args, concatenate into 1 string
