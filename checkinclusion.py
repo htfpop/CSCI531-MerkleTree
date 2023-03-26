@@ -26,23 +26,48 @@ class treeNode:
 
 def check_inclusion_entry():
     args = sys.argv
+    parent: treeNode = None
+    node_found: treeNode = None
+    l_node: treeNode = None
+    r_node: treeNode = None
+    proof = []
+    success = False
+
     if len(args) < 2:
         print(f'[ERROR]: No arguments provided. Exiting now')
         exit(-1)
     print(f'Arguments {args}\r\n')
 
     t = build_tree()
-    #t.show()
-    #list = t.paths_to_leaves()
-
     all_nodes = t.all_nodes()
-    node_found: treeNode = None
+
     for node in all_nodes:
         if args[1] == node.data.data:
             node_found = node.data
+            success = True
             print(f'FOUND: {node_found.uid}')
-            print(t.rsearch(node_found.uid))
+            break
 
+    if success:
+        while node_found.uid != 'Root':
+            parent = t.parent(node_found.uid)
+            l_node = parent.data.left_node.data
+            r_node = parent.data.right_node.data
+
+            if l_node.uid == node_found.uid:
+                proof.append(r_node.uid)
+            else:
+                proof.append(l_node.uid)
+
+            node_found = parent.data
+
+    if success:
+        print(f'Yes, {proof}')
+
+        for i in proof:
+            print(t.get_node(i).data.node_to_str())
+    else:
+        print('No')
 
 
 def build_tree():
@@ -69,11 +94,11 @@ def build_tree():
             f.readline()
             new_node = treeNode(data=data, uid=uid)
 
-            #nodes.append(treeNode(data, l_node, r_node, uid))
             if uid[0] == 'd':
                 t.create_node(tag=None, identifier=uid, parent="Root", data=new_node)
             elif uid[0] == 'h':
-                t.create_node(tag=None, identifier=uid, parent="Root", data=treeNode(data, t.get_node(l_node), t.get_node(r_node), uid))
+                t.create_node(tag=None, identifier=uid, parent="Root",
+                              data=treeNode(data, t.get_node(l_node), t.get_node(r_node), uid))
                 t.move_node(t.get_node(l_node).data.uid, uid)
                 t.move_node(t.get_node(r_node).data.uid, uid)
             elif uid[0] == 'R':
