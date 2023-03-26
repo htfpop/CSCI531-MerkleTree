@@ -1,4 +1,4 @@
-from treelib import Node, Tree
+from treelib import Tree
 import hashlib
 import math
 import sys
@@ -12,24 +12,18 @@ class treeNode:
         self.right_node = right_node
         self.uid = uid
 
-    #def __str__(self):
-    #    return f"Data: ({self.data}) Hash: ({hashlib.sha256(self.data.encode()).hexdigest()})"
+        def __str__(self):
+            return self.uid
+            #return f"Data: ({self.data}) Hash: ({hashlib.sha256(self.data.encode()).hexdigest()})"
+    def node_print(self):
+        print(f'UID:{self.uid}\r\nData:{self.data}\r\nHash:{self.hash}')
 
+    def node_to_str(self):
+        if self.left_node is None:
+            return f'UID:{self.uid}\nData:{self.data}\nHash:{self.hash}\nL_Node:{self.left_node}\nR_Node:{self.right_node}\n\n'
+        else:
+            return f'UID:{self.uid}\nData:{self.data}\nHash:{self.hash}\nL_Node:{self.left_node.uid}\nR_Node:{self.right_node.uid}\n\n'
 
-def merkle_entry():
-    args = sys.argv
-    if len(args) < 2:
-        print(f'[ERROR]: No arguments provided. Exiting now')
-        exit(-1)
-    print(f'Arguments {args}\r\n')
-    arguments = arg_parser(args)
-
-    merkle_tree = gen_tree(arguments)
-
-    merkle_tree.show()
-
-    x = merkle_tree.get_node("Root").data.hash
-    print(x)
 
 
 def get_remain_nodes(args):
@@ -50,6 +44,7 @@ def gen_tree(args):
     t = Tree()
     remain = get_remain_nodes(args)
     leaves = []
+    f = open("merkle.tree", "w")
 
     t.create_node(tag="Root", identifier="Root", parent=None, data=None)
 
@@ -66,12 +61,13 @@ def gen_tree(args):
         uid = "d" + str(i)
         t.create_node(tag=None, identifier=uid, parent="Root", data=leaves[i].hash)
         leaves[i].uid = uid
+        f.write(leaves[i].node_to_str())
 
     # DEBUG
-    for i in range(len(leaves)):
-        print(f'[DEBUG]: {leaves[i]}')
+    # for i in range(len(leaves)):
+    # print(f'[DEBUG]: {leaves[i]}')
 
-    print(f'Total nodes = {len(leaves)}')
+    # print(f'Total nodes = {len(leaves)}')
 
     num_levels = int(math.floor(math.log2(len(leaves))))
     previous_level = leaves
@@ -88,11 +84,16 @@ def gen_tree(args):
         for i in range(0, len(previous_level), 2):
             l_node = previous_level[i]
             r_node = previous_level[i + 1]
-            new_node = treeNode(l_node.hash + r_node.hash, l_node, r_node)
 
             if curr_level != 1:
-                print(f'[DEBUG]: L: {l_node} R: {r_node}')
                 node_id = "h" + str(hash_ctr)
+            else:
+                node_id = "Root"
+            new_node = treeNode(l_node.hash + r_node.hash, l_node, r_node, node_id)
+            f.write(new_node.node_to_str())
+
+            if curr_level != 1:
+                # print(f'[DEBUG]: L: {l_node} R: {r_node}')
                 new_node.uid = node_id
                 t.create_node(tag=None, identifier=node_id, parent="Root", data=new_node)
                 t.move_node(l_node.uid, node_id)
@@ -106,6 +107,7 @@ def gen_tree(args):
         previous_level = next_level.copy()
         next_level.clear()
 
+    f.close()
     return t
 
 
@@ -150,6 +152,19 @@ def arg_parser(args):
     print(f'Args = {parsed_args}')
 
     return parsed_args
+
+
+def merkle_entry():
+    args = sys.argv
+    if len(args) < 2:
+        print(f'[ERROR]: No arguments provided. Exiting now')
+        exit(-1)
+    print(f'Arguments {args}\r\n')
+    arguments = arg_parser(args)
+
+    merkle_tree = gen_tree(arguments)
+
+    merkle_tree.show()
 
 
 if __name__ == '__main__':
