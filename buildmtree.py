@@ -154,18 +154,21 @@ def arg_parser(args):
     return parsed_args
 
 
-def merkle_entry():
-    args = sys.argv
-    if len(args) < 2:
-        print(f'[ERROR]: No arguments provided. Exiting now')
-        exit(-1)
-    print(f'Arguments {args}\r\n')
+def merkle_entry(args):
+
     arguments = arg_parser(args)
 
     merkle_tree = gen_tree(arguments)
 
     merkle_tree.show()
 
+    return merkle_tree
+
 
 if __name__ == '__main__':
-    merkle_entry()
+    args = sys.argv
+    if len(args) < 2:
+        print(f'[ERROR]: No arguments provided. Exiting now')
+        exit(-1)
+    print(f'Arguments {args}\r\n')
+    merkle_entry(args)
