@@ -55,17 +55,17 @@ def check_inclusion_entry():
             r_node = parent.data.right_node.data
 
             if l_node.uid == node_found.uid:
-                proof.append(r_node.uid)
+                proof.append(r_node.hash)
             else:
-                proof.append(l_node.uid)
+                proof.append(l_node.hash)
 
             node_found = parent.data
 
     if success:
         print(f'Yes, {proof}')
 
-        for i in proof:
-            print(t.get_node(i).data.node_to_str())
+       # for i in proof:
+        #    print(t.get_node(i).data.node_to_str())
     else:
         print('No')
 
