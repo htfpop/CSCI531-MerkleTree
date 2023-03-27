@@ -103,10 +103,15 @@ def check_consistency_main():
             mini_proof = check_inclusion(t2, parent.data.left_node.data)
         else:
             mini_proof = check_inclusion(t2, parent.data.right_node.data)
+    else:
+        proof.append(first_root.hash)
+        proof.append(t2.get_node("Root").data.hash)
 
     # proof output
     if len(proof) != 0:
         print(f'Yes, {proof}')
+    else:
+        print(f'No')
 
 
 """
@@ -155,7 +160,6 @@ def arg_parser(args):
         print(f'[ERROR]: Only right bracket \']\' found. Exiting now.')
         exit(-1)
 
-    print(f'String: {temp_str}')
     temp_str = temp_str.replace(" ", "")
 
     parsed_args = temp_str.split(sep=',')
@@ -163,11 +167,10 @@ def arg_parser(args):
     num_items = len(parsed_args)
 
     if len(parsed_args) % 2 != 0:
-        print(
-            f'[WARN]: Input size is odd, appending last entry "{parsed_args[len(parsed_args) - 1]}" to make length even')
+        #print(f'[WARN]: Input size is odd, appending last entry "{parsed_args[len(parsed_args) - 1]}" to make length even')
         parsed_args.append(parsed_args[len(parsed_args) - 1])
 
-    print(f'Args = {parsed_args}')
+    #print(f'Args = {parsed_args}')
 
     return parsed_args, num_items
 

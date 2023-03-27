@@ -42,7 +42,7 @@ def check_inclusion_entry():
               f'[Usage]: python checkinclusion.py "<person>"\r\n'
               f'Exiting Now..')
         exit(-1)
-    print(f'Arguments {args}\r\n')
+    #print(f'Arguments {args}\r\n')
 
     t = build_tree()
     proof = check_inclusion(t, args[1])
@@ -72,7 +72,7 @@ def check_inclusion(t, search_val):
         if search_val == node.data.data:
             node_found = node.data
             success = True
-            print(f'FOUND: {node_found.uid}')
+            #print(f'FOUND: {node_found.uid}')
             break
 
     if success:

@@ -134,8 +134,6 @@ def arg_parser(args):
             continue
         temp_str += args[x]
 
-    print(f'String: {temp_str}')
-
     # find brackets, returns -1 on failure
     l_bracket = temp_str.find('[')
     r_bracket = temp_str.find(']')
@@ -171,7 +169,8 @@ def merkle_entry(args):
 
     merkle_tree = gen_tree(arguments)
 
-    merkle_tree.show()
+    # debug
+    # merkle_tree.show()
 
     return merkle_tree
 
