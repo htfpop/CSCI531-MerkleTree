@@ -1,7 +1,15 @@
+""" **************************************************************
+* Programmer : Christopher K. Leung (2965-7518-69)               *
+* Course ID  : CSCI531 - Applied Cryptography                    *
+* Due Date   : March 26, 2023                                    *
+* Project    : checkinclusion.py                                 *
+* Purpose    : This python script is to determine if a name from *
+               is included within our merkle tree                *
+*****************************************************************"""
+
 import hashlib
 from treelib import Tree
 import sys
-
 
 class treeNode:
     def __init__(self, data, left_node=None, right_node=None, uid=None):
@@ -14,18 +22,43 @@ class treeNode:
     def __str__(self):
         return f"Data: ({self.data}) Hash: ({hashlib.sha256(self.data.encode()).hexdigest()})"
 
-    def node_print(self):
-        print(f'UID:{self.uid}\r\nData:{self.data}\r\nHash:{self.hash}')
-
     def node_to_str(self):
         if self.left_node == 'None' and self.right_node == 'None':
             return f'UID:{self.uid}\nData:{self.data}\nHash:{self.hash}\nL_Node:{self.left_node}\nR_Node:{self.right_node}\n\n'
         else:
             return f'UID:{self.uid}\nData:{self.data}\nHash:{self.hash}\nL_Node:{self.left_node}\nR_Node:{self.right_node}\n\n'
 
-
+"""
+Function :   check_inclusion_entry
+Parameters : CLI Arguments
+Output :     None
+Description: Prints "Yes" with merkle proof to indicate inclusion or "no" if person is not in the tree
+"""
 def check_inclusion_entry():
     args = sys.argv
+
+    if len(args) < 2:
+        print(f'[ERROR]: Not enough command line arguments\r\n'
+              f'[Usage]: python checkinclusion.py "<person>"\r\n'
+              f'Exiting Now..')
+        exit(-1)
+    print(f'Arguments {args}\r\n')
+
+    t = build_tree()
+    proof = check_inclusion(t, args[1])
+
+    if len(proof) == 0:
+        print('No')
+    else:
+        print(f'Yes, {proof}')
+
+"""
+Function :   check_inclusion
+Parameters : t:tree, search_val:str
+Output :     proof:list[]
+Description: Prepends proof of inclusion for merkle tree
+"""
+def check_inclusion(t, search_val):
     parent: treeNode = None
     node_found: treeNode = None
     l_node: treeNode = None
@@ -33,16 +66,10 @@ def check_inclusion_entry():
     proof = []
     success = False
 
-    if len(args) < 2:
-        print(f'[ERROR]: No arguments provided. Exiting now')
-        exit(-1)
-    print(f'Arguments {args}\r\n')
-
-    t = build_tree()
     all_nodes = t.all_nodes()
 
     for node in all_nodes:
-        if args[1] == node.data.data:
+        if search_val == node.data.data:
             node_found = node.data
             success = True
             print(f'FOUND: {node_found.uid}')
@@ -61,15 +88,14 @@ def check_inclusion_entry():
 
             node_found = parent.data
 
-    if success:
-        print(f'Yes, {proof}')
+    return proof
 
-       # for i in proof:
-        #    print(t.get_node(i).data.node_to_str())
-    else:
-        print('No')
-
-
+"""
+Function :   build_tree
+Parameters : CLI Arguments
+Output :     t:Tree
+Description: Parses merkle.tree and re-creates the tree data structure accordingly 
+"""
 def build_tree():
     t = Tree()
     t.create_node(tag="Root", identifier="Root")
@@ -85,6 +111,7 @@ def build_tree():
         line_count = len(f.readlines())
         f.seek(0)
 
+        # python line parser
         for line in range(0, line_count, 6):
             uid = f.readline().split(':')[1].rstrip()
             data = f.readline().split(':')[1].rstrip()
@@ -94,6 +121,7 @@ def build_tree():
             f.readline()
             new_node = treeNode(data=data, uid=uid)
 
+            # 'd' == data item, 'h' = hash(d<n> || d<n>) , 'r' == Root
             if uid[0] == 'd':
                 t.create_node(tag=None, identifier=uid, parent="Root", data=new_node)
             elif uid[0] == 'h':
@@ -110,6 +138,11 @@ def build_tree():
     f.close()
     return t
 
-
+"""
+Function :   main
+Parameters : None
+Output :     None
+Description: Driver for check inclusion
+"""
 if __name__ == '__main__':
     check_inclusion_entry()

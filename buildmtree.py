@@ -1,3 +1,12 @@
+""" **************************************************************
+* Programmer : Christopher K. Leung (2965-7518-69)               *
+* Course ID  : CSCI531 - Applied Cryptography                    *
+* Due Date   : March 26, 2023                                    *
+* Project    : buildmtree.py                                     *
+* Purpose    : This python script is to generate the merkle tree *
+               for a set number of input CLI parameters          *
+*****************************************************************"""
+
 from treelib import Tree
 import hashlib
 import math
@@ -12,10 +21,6 @@ class treeNode:
         self.right_node = right_node
         self.uid = uid
 
-        # def __str__(self):
-        # return self.uid
-        # return f"Data: ({self.data}) Hash: ({hashlib.sha256(self.data.encode()).hexdigest()})"
-
     def node_print(self):
         print(f'UID:{self.uid}\r\nData:{self.data}\r\nHash:{self.hash}')
 
@@ -25,7 +30,12 @@ class treeNode:
         else:
             return f'UID:{self.uid}\nData:{self.data}\nHash:{self.hash}\nL_Node:{self.left_node.uid}\nR_Node:{self.right_node.uid}\n\n'
 
-
+"""
+Function :   get_remain_nodes
+Parameters : list with names
+Output :     remain:int
+Description: determine number of nodes to make power of 2 at a certain level
+"""
 def get_remain_nodes(args):
     curr_level = math.log2(len(args))
     num_nodes = 0
@@ -39,7 +49,12 @@ def get_remain_nodes(args):
 
     return remain
 
-
+"""
+Function :   gen_tree
+Parameters : CLI arguments
+Output :     t:Tree
+Description: Generate entire merkle tree bottom-up using treelib. Print to file shortly thereafter
+"""
 def gen_tree(args):
     t = Tree()
     remain = get_remain_nodes(args)
@@ -62,12 +77,6 @@ def gen_tree(args):
         t.create_node(tag=None, identifier=uid, parent="Root", data=leaves[i].hash)
         leaves[i].uid = uid
         f.write(leaves[i].node_to_str())
-
-    # DEBUG
-    # for i in range(len(leaves)):
-    # print(f'[DEBUG]: {leaves[i]}')
-
-    # print(f'Total nodes = {len(leaves)}')
 
     num_levels = int(math.floor(math.log2(len(leaves))))
     previous_level = leaves
@@ -110,17 +119,18 @@ def gen_tree(args):
     f.close()
     return t
 
-
+"""
+Function :   arg_parser
+Parameters : CLI arguments
+Output :     parsed_args:list[]
+Description: Parse CLI to generate a list of names for data items in our merkle tree
+"""
 def arg_parser(args):
-    # parsed_args = []
-    # l_bracket = -99
-    # r_bracket = -99
     temp_str = ""
 
     # iterate through args, concatenate into 1 string
     for x in range(1, len(args), 1):
         if args[x] == ',':
-            print(f'continued from white space')
             continue
         temp_str += args[x]
 
@@ -140,8 +150,6 @@ def arg_parser(args):
         print(f'[ERROR]: Only right bracket \']\' found. Exiting now.')
         exit(-1)
 
-    print(f'String: {temp_str}')
-
     parsed_args = temp_str.split(sep=',')
 
     if len(parsed_args) % 2 != 0:
@@ -149,11 +157,14 @@ def arg_parser(args):
             f'[WARN]: Input size is odd, appending last entry "{parsed_args[len(parsed_args) - 1]}" to make length even')
         parsed_args.append(parsed_args[len(parsed_args) - 1])
 
-    print(f'Args = {parsed_args}')
-
     return parsed_args
 
-
+"""
+Function :   merkle_entry
+Parameters : CLI arguments
+Output :     merkle tree
+Description: Parse CLI to create merkle tree
+"""
 def merkle_entry(args):
 
     arguments = arg_parser(args)
@@ -165,10 +176,18 @@ def merkle_entry(args):
     return merkle_tree
 
 
+"""
+Function :   main
+Parameters : None
+Output :     None
+Description: Driver for build merkle tree
+"""
 if __name__ == '__main__':
     args = sys.argv
     if len(args) < 2:
-        print(f'[ERROR]: No arguments provided. Exiting now')
+        print(f'[ERROR]: Not enough command line arguments\r\n'
+              f'[Usage]: python buildmtree.py "[<data1,data2, ..., datan>]"\r\n'
+              f'Exiting Now..')
         exit(-1)
-    print(f'Arguments {args}\r\n')
+
     merkle_entry(args)
