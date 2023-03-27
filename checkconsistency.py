@@ -11,6 +11,8 @@ import hashlib
 from treelib import Tree
 import sys
 import buildmtree
+import checkinclusion
+
 
 class treeNode:
     def __init__(self, data, left_node=None, right_node=None, uid=None):
@@ -56,7 +58,8 @@ def check_consistency_main():
 
     # Create tree for first argument
     rep1, num_items1 = arg_parser(args[1])
-    t: Tree = buildmtree.gen_tree(rep1)
+    buildmtree.gen_tree(rep1)
+    t: Tree = checkinclusion.build_tree()
 
     # read all contents from merkle.tree into merkle.trees
     f2 = open("merkle.tree", "r")
@@ -72,7 +75,8 @@ def check_consistency_main():
     # Create tree for second argument
     f.write(f'--- Begin Tree 2 ---\n')
     rep2, num_items2 = arg_parser(args[2])
-    t2: Tree = buildmtree.gen_tree(rep2)
+    buildmtree.gen_tree(rep2)
+    t2: Tree = checkinclusion.build_tree()
     f3 = open('merkle.tree', 'r')
     f.write(f3.read())
     f3.close()
@@ -88,24 +92,31 @@ def check_consistency_main():
     is_power_2_arg1 = is_power_of_two(num_items1)
     first_root: treeNode = t.get_node("Root").data
 
-    # obtain old root, next node and new root hash
-    if is_power_2_arg1:
+    if num_items1 % 2 == 1:
         proof.append(first_root.hash)
-        proof.append(t2.get_node("Root").data.right_node.hash)
+        mini_proof = checkinclusion.check_inclusion(t2, rep1[num_items1])
+        proof.append(mini_proof)
         proof.append(t2.get_node("Root").data.hash)
 
-    # not power of 2 but even
-    elif num_items1 % 2 == 0:
-        child_uid = 'd' + str(num_items1 - 1)
-        proof.append(first_root.hash)
-        parent = t2.parent(child_uid)
-        if child_uid == parent.data.left_node.uid:
-            mini_proof = check_inclusion(t2, parent.data.left_node.data)
-        else:
-            mini_proof = check_inclusion(t2, parent.data.right_node.data)
     else:
-        proof.append(first_root.hash)
-        proof.append(t2.get_node("Root").data.hash)
+        # obtain old root, next node and new root hash
+        if is_power_2_arg1:
+            proof.append(first_root.hash)
+            proof.append(t2.get_node("Root").data.right_node.data.hash)
+            proof.append(t2.get_node("Root").data.hash)
+
+        # not power of 2 but even
+        elif num_items1 % 2 == 0:
+            child_uid = 'd' + str(num_items1 - 1)
+            proof.append(first_root.hash)
+            parent = t2.parent(child_uid)
+            if child_uid == parent.data.left_node.data.uid:
+                mini_proof = checkinclusion.check_inclusion(t2, parent.data.left_node.data.data)
+                proof.append(mini_proof)
+            else:
+                mini_proof = checkinclusion.check_inclusion(t2, parent.data.right_node.data.data)
+                proof.append(mini_proof)
+            proof.append(t2.get_node("Root").data.hash)
 
     # proof output
     if len(proof) != 0:
@@ -173,40 +184,6 @@ def arg_parser(args):
     #print(f'Args = {parsed_args}')
 
     return parsed_args, num_items
-
-
-def check_inclusion(t, search_val):
-    parent: treeNode = None
-    node_found: treeNode = None
-    l_node: treeNode = None
-    r_node: treeNode = None
-    proof = []
-    success = False
-
-    all_nodes = t.all_nodes()
-
-    for node in all_nodes:
-        if search_val == node.data:
-            node_found = node.data
-            success = True
-            print(f'FOUND: {node_found.uid}')
-            break
-
-    if success:
-        while node_found.uid != 'Root':
-            parent = t.parent(node_found.uid)
-            l_node = parent.data.left_node.data
-            r_node = parent.data.right_node.data
-
-            if l_node.uid == node_found.uid:
-                proof.append(r_node.hash)
-            else:
-                proof.append(l_node.hash)
-
-            node_found = parent.data
-
-    return proof
-
 
 """
 Function :   is_power_of_two
